@@ -1,0 +1,45 @@
+//CTE is a modular and more cleaner approach of writing complex queries
+WITH ranked_concerts_cte AS (
+  SELECT
+    artist_name,
+    concert_revenue,
+    genre,
+    number_of_members,
+    (concert_revenue / number_of_members) AS revenue_per_member,
+    RANK() OVER (
+      PARTITION BY genre
+      ORDER BY (concert_revenue / number_of_members) DESC) AS ranked_concerts
+  FROM concerts
+)
+
+SELECT artist_name,
+    concert_revenue,
+    genre,
+    number_of_members,
+    (concert_revenue / number_of_members) AS revenue_per_member
+FROM ranked_concerts_cte
+WHERE ranked_concerts=1
+ORDER BY revenue_per_member DESC
+
+
+//on the other hand this is more an inline apperoach and used where the helping query is small in size
+
+SELECT artist_name,
+    concert_revenue,
+    genre,
+    number_of_members,
+    (concert_revenue / number_of_members) AS revenue_per_member
+FROM (
+  SELECT
+    artist_name,
+    concert_revenue,
+    genre,
+    number_of_members,
+    (concert_revenue / number_of_members) AS revenue_per_member,
+    RANK() OVER (
+      PARTITION BY genre
+      ORDER BY (concert_revenue / number_of_members) DESC) AS ranked_concerts
+  FROM concerts
+) AS subquery
+WHERE ranked_concerts=1
+ORDER BY revenue_per_member DESC;
